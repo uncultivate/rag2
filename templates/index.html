@@ -26,6 +26,23 @@
             margin-bottom: 15px;
             padding: 10px;
             border-radius: 5px;
+            /* Add these properties for proper text formatting */
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .message-content {
+            /* Add styles for the content div */
+            line-height: 1.5;
+        }
+
+        .message-content ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .message-content li {
+            margin-bottom: 5px;
         }
 
         .user-message {
@@ -41,6 +58,7 @@
         #input-container {
             display: flex;
             gap: 10px;
+            margin-top: 20px;
         }
 
         #query-input {
@@ -64,6 +82,19 @@
             background-color: #0056b3;
         }
 
+        #clear-button {
+            padding: 10px 20px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #clear-button:hover {
+            background-color: #c82333;
+        }
+
         .loading {
             opacity: 0.5;
             pointer-events: none;
@@ -76,31 +107,65 @@
     <div id="input-container">
         <input type="text" id="query-input" placeholder="Type your question here...">
         <button id="submit-button">Send</button>
+        <button id="clear-button">Clear Chat</button>
     </div>
 
     <script>
         const chatContainer = document.getElementById('chat-container');
         const queryInput = document.getElementById('query-input');
         const submitButton = document.getElementById('submit-button');
+        const clearButton = document.getElementById('clear-button');
+
+        function convertMarkdownToBullets(text) {
+            // Convert markdown-style bullets to HTML
+            return text.replace(/^[\s-]*•?\s*(.+)$/gm, '<li>$1</li>')
+                      .replace(/\n\n/g, '<br><br>');
+        }
 
         function addMessage(content, isUser) {
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${isUser ? 'user-message' : 'assistant-message'}`;
-            messageDiv.textContent = content;
+            
+            // Create a content div for formatted text
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            
+            if (isUser) {
+                // For user messages, just use text
+                contentDiv.textContent = content;
+            } else {
+                // For assistant messages, process formatting
+                let formattedContent = content;
+                
+                // Check if content contains bullet points
+                if (content.includes('•') || content.includes('-')) {
+                    formattedContent = '<ul>' + convertMarkdownToBullets(content) + '</ul>';
+                }
+                
+                contentDiv.innerHTML = formattedContent;
+            }
+            
+            messageDiv.appendChild(contentDiv);
             chatContainer.appendChild(messageDiv);
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
+
+        // Load chat history if it exists
+        {% if chat_history %}
+            {% for message in chat_history %}
+                addMessage("{{ message.query | safe }}", true);
+                addMessage("{{ message.response | safe }}", false);
+            {% endfor %}
+        {% endif %}
 
         async function sendQuery() {
             const query = queryInput.value.trim();
             if (!query) return;
 
-            // Disable input and show loading state
             queryInput.disabled = true;
             submitButton.disabled = true;
             submitButton.textContent = 'Loading...';
 
-            // Add user message to chat
             addMessage(query, true);
 
             try {
@@ -119,14 +184,23 @@
                 console.error('Error:', error);
             }
 
-            // Reset input and loading state
             queryInput.value = '';
             queryInput.disabled = false;
             submitButton.disabled = false;
             submitButton.textContent = 'Send';
         }
 
+        async function clearChat() {
+            try {
+                await fetch('/clear', { method: 'POST' });
+                chatContainer.innerHTML = '';
+            } catch (error) {
+                console.error('Error clearing chat:', error);
+            }
+        }
+
         submitButton.addEventListener('click', sendQuery);
+        clearButton.addEventListener('click', clearChat);
         queryInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 sendQuery();
