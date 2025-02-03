@@ -16,7 +16,7 @@ app.secret_key = os.urandom(24)  # Required for session management
 
 
 # Initialize your clients and configurations
-AZURE_SEARCH_SERVICE = "https://rag930.search.windows.net"
+AZURE_SEARCH_SERVICE = os.getenv('AZURE_SEARCH_SERVICE')
 # Get API key from environment variable
 GROQ_KEY = os.getenv('GROQ_KEY')
 INDEX_NAME = "py-rag-tutorial-idx"
