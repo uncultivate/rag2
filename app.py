@@ -72,48 +72,62 @@ def query():
             for msg in chat_history
         ])
 
-        # Set up vector query
-        vector_query = VectorizableTextQuery(
-            text=user_query, 
-            k_nearest_neighbors=50, 
-            fields="text_vector"
-        )
+        try:
+            # Test Azure Search connection
+            vector_query = VectorizableTextQuery(
+                text=user_query, 
+                k_nearest_neighbors=50, 
+                fields="text_vector"
+            )
+            
+            search_results = search_client.search(
+                query_type="semantic",
+                semantic_configuration_name="my-semantic-config",
+                scoring_profile="my-scoring-profile",
+                scoring_parameters=["tags-bimberi, incident"],
+                search_text=user_query,
+                vector_queries=[vector_query],
+                select="title, chunk, locations",
+                top=5,
+            )
+            
+            # Convert search results to list to test if we got any results
+            results_list = list(search_results)
+            if not results_list:
+                return jsonify({'error': 'No search results found'}), 404
 
-        # Search results
-        search_results = search_client.search(
-            query_type="semantic",
-            semantic_configuration_name="my-semantic-config",
-            scoring_profile="my-scoring-profile",
-            scoring_parameters=["tags-bimberi, incident"],
-            search_text=user_query,
-            vector_queries=[vector_query],
-            select="title, chunk, locations",
-            top=5,
-        )
+            # Format sources
+            sources_formatted = "=================\n".join([
+                f'TITLE: {document["title"]}, CONTENT: {document["chunk"]}, LOCATIONS: {document["locations"]}' 
+                for document in results_list
+            ])
 
-        # Format sources
-        sources_formatted = "=================\n".join([
-            f'TITLE: {document["title"]}, CONTENT: {document["chunk"]}, LOCATIONS: {document["locations"]}' 
-            for document in search_results
-        ])
+        except Exception as search_error:
+            print(f"Azure Search error: {str(search_error)}")
+            return jsonify({'error': f'Search service error: {str(search_error)}'}), 500
 
-        # Get response from Groq
-        response = groq_client.chat.completions.create(
-            messages=[
-                {
-                    "role": "user",
-                    "content": GROUNDED_PROMPT.format(
-                        query=user_query,
-                        chat_history=formatted_history,
-                        sources=sources_formatted
-                    )
-                }
-            ],
-            model="llama3-8b-8192",
-            temperature=0.7
-        )
+        try:
+            # Test Groq connection
+            response = groq_client.chat.completions.create(
+                messages=[
+                    {
+                        "role": "user",
+                        "content": GROUNDED_PROMPT.format(
+                            query=user_query,
+                            chat_history=formatted_history,
+                            sources=sources_formatted
+                        )
+                    }
+                ],
+                model="llama3-8b-8192",
+                temperature=0.7
+            )
 
-        assistant_response = response.choices[0].message.content
+            assistant_response = response.choices[0].message.content
+
+        except Exception as groq_error:
+            print(f"Groq API error: {str(groq_error)}")
+            return jsonify({'error': f'Language model error: {str(groq_error)}'}), 500
 
         # Update chat history
         chat_history.append({
@@ -135,3 +149,6 @@ def query():
 def clear_history():
     session['chat_history'] = []
     return jsonify({'status': 'success'})
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=True)
