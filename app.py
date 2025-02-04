@@ -6,8 +6,6 @@ from groq import Groq
 import os
 from dotenv import load_dotenv
 from markupsafe import escape
-import logging
-from opencensus.ext.azure.log_exporter import AzureLogHandler
 
 
 # Load environment variables
@@ -138,12 +136,6 @@ def clear_history():
     session['chat_history'] = []
     return jsonify({'status': 'success'})
 
-# Add after your app initialization
-if not app.debug:
-    logger = logging.getLogger(__name__)
-    logger.addHandler(AzureLogHandler())
-    logger.setLevel(logging.INFO)
-
-# Update the main section
+# Just keep the main section
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))

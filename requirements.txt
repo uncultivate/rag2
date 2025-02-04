@@ -5,5 +5,3 @@ groq
 python-dotenv
 markupsafe
 gunicorn
-opencensus-ext-azure
-applicationinsights
