@@ -105,6 +105,10 @@ def query():
         except Exception as search_error:
             print(f"Azure Search error: {str(search_error)}")
             return jsonify({'error': f'Search service error: {str(search_error)}'}), 500
+        print('test1')
+        print(user_query)
+        print(formatted_history)
+        print(sources_formatted)
 
         try:
             # Test Groq connection
