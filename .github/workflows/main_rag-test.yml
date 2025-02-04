@@ -3,6 +3,9 @@
 # More info on Python, GitHub Actions, and Azure App Service: https://aka.ms/python-webapps-actions
 
 name: Build and deploy Python app to Azure Web App - rag-test
+env:
+  AZURE_WEBAPP_NAME: rag-test    # set this to your application's name
+  PYTHON_VERSION: '3.12'  
 
 on:
   push:
