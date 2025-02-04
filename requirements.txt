@@ -1,0 +1,9 @@
+flask
+azure-identity
+azure-search-documents
+groq
+python-dotenv
+markupsafe
+gunicorn
+opencensus-ext-azure
+applicationinsights

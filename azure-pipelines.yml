@@ -1,0 +1,31 @@
+trigger:
+- main
+
+variables:
+  # Azure Resource Manager connection
+  azureServiceConnectionId: '4feed6b4-8c2c-47b9-aafd-5397dd7c394f'
+  webAppName: 'rag-test'
+  environmentName: 'production'
+  vmImageName: 'ubuntu-latest'
+
+stages:
+- stage: Deploy
+  displayName: Deploy stage
+  jobs:
+  - deployment: Deploy
+    pool:
+      vmImage: $(vmImageName)
+    environment: $(environmentName)
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: '3.12'
+              
+          - task: AzureWebApp@1
+            inputs:
+              azureSubscription: $(azureServiceConnectionId)
+              appName: $(webAppName)
+              package: $(System.DefaultWorkingDirectory) 
