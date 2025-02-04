@@ -135,7 +135,3 @@ def query():
 def clear_history():
     session['chat_history'] = []
     return jsonify({'status': 'success'})
-
-# Just keep the main section
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
