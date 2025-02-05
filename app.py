@@ -6,6 +6,13 @@ from groq import Groq
 import os
 from dotenv import load_dotenv
 from markupsafe import escape
+import logging
+
+# Add this configuration after your app initialization
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
 
 
 # Load environment variables
@@ -105,10 +112,10 @@ def query():
         except Exception as search_error:
             print(f"Azure Search error: {str(search_error)}")
             return jsonify({'error': f'Search service error: {str(search_error)}'}), 500
-        print('test1')
-        print(user_query)
-        print(formatted_history)
-        print(sources_formatted)
+        logging.info('test1')
+        logging.info(f'User query: {user_query}')
+        logging.info(f'Formatted history: {formatted_history}')
+        logging.info(f'Formatted sources: {sources_formatted}')
 
         try:
             # Test Groq connection
