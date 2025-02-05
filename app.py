@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, jsonify, session
+from azure.core.credentials import AzureKeyCredential
 from azure.identity import DefaultAzureCredential
 from azure.search.documents import SearchClient
 from azure.search.documents.models import VectorizableTextQuery
@@ -24,11 +25,11 @@ app.secret_key = os.urandom(24)  # Required for session management
 
 # Initialize your clients and configurations
 AZURE_SEARCH_SERVICE = os.getenv('AZURE_SEARCH_SERVICE')
-# Get API key from environment variable
-GROQ_KEY = os.getenv('GROQ_KEY')
+AZURE_SEARCH_KEY = os.getenv('AZURE_SEARCH_KEY')
+GROQ_KEY = os.getenv('GROQ_API_KEY')
 INDEX_NAME = "py-rag-tutorial-idx"
 
-credential = DefaultAzureCredential()
+credential = AzureKeyCredential(AZURE_SEARCH_KEY)
 groq_client = Groq(api_key=GROQ_KEY)
 search_client = SearchClient(
     endpoint=AZURE_SEARCH_SERVICE,
