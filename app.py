@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request, jsonify, session
 from azure.core.credentials import AzureKeyCredential
-from azure.identity import DefaultAzureCredential
 from azure.search.documents import SearchClient
 from azure.search.documents.models import VectorizableTextQuery
 from groq import Groq
@@ -9,19 +8,17 @@ from dotenv import load_dotenv
 from markupsafe import escape
 import logging
 
-# Add this configuration after your app initialization
+# Add logging configuration
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 
-
 # Load environment variables
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = os.urandom(24)  # Required for session management
-
+app.secret_key = os.urandom(24)
 
 # Initialize your clients and configurations
 AZURE_SEARCH_SERVICE = os.getenv('AZURE_SEARCH_SERVICE')
@@ -29,6 +26,11 @@ AZURE_SEARCH_KEY = os.getenv('AZURE_SEARCH_KEY')
 GROQ_KEY = os.getenv('GROQ_API_KEY')
 INDEX_NAME = "py-rag-tutorial-idx"
 
+# Log configuration values (excluding sensitive keys)
+logging.info(f"AZURE_SEARCH_SERVICE: {AZURE_SEARCH_SERVICE}")
+logging.info(f"INDEX_NAME: {INDEX_NAME}")
+
+# Initialize clients with API key authentication
 credential = AzureKeyCredential(AZURE_SEARCH_KEY)
 groq_client = Groq(api_key=GROQ_KEY)
 search_client = SearchClient(
